@@ -51,6 +51,7 @@ message DeviceProps {
 		optional bool supportGuestChat = 17;
 		optional bool completeOnDemandReady = 18;
 		optional uint32 thumbnailSyncDaysLimit = 19;
+		optional bool supportManusHistory = 21;
 	}
 
 	message AppVersion {
