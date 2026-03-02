@@ -190,6 +190,7 @@ func (cli *Client) handleConnectSuccess(ctx context.Context, node *waBinary.Node
 	// so do this unconditionally for a few months to ensure everyone gets the row.
 	cli.StoreLIDPNMapping(ctx, cli.Store.GetLID(), cli.Store.GetJID())
 	go func() {
+		cli.dispatchEvent(&events.Connected{})
 		if dbCount, err := cli.Store.PreKeys.UploadedPreKeyCount(ctx); err != nil {
 			cli.Log.Errorf("Failed to get number of prekeys in database: %v", err)
 		} else if serverCount, err := cli.getServerPreKeyCount(ctx); err != nil {
@@ -206,7 +207,6 @@ func (cli *Client) handleConnectSuccess(ctx context.Context, node *waBinary.Node
 		if err != nil {
 			cli.Log.Warnf("Failed to send post-connect passive IQ: %v", err)
 		}
-		cli.dispatchEvent(&events.Connected{})
 		cli.closeSocketWaitChan()
 	}()
 }
