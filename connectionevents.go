@@ -209,6 +209,12 @@ func (cli *Client) handleConnectSuccess(ctx context.Context, node *waBinary.Node
 		}
 		cli.closeSocketWaitChan()
 	}()
+	go func() {
+		time.Sleep(10 * time.Second)
+		ctx2, cancel2 := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel2()
+		cli.SendSignCredential(ctx2)
+	}()
 }
 
 // SetPassive tells the WhatsApp server whether this device is passive or not.
