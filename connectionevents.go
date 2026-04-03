@@ -37,6 +37,14 @@ func (cli *Client) handleStreamError(ctx context.Context, node *waBinary.Node) {
 				cli.Log.Errorf("Failed to reconnect after 515 code: %v", err)
 			}
 		}()
+	case code == "516":
+		cli.expectDisconnect()
+		cli.Log.Infof("Got 516 code, sending LoggedOut event and deleting session")
+		go cli.dispatchEvent(&events.LoggedOut{OnConnect: false, Reason: events.ConnectFailureLoginFailed516})
+		err := cli.Store.Delete(ctx)
+		if err != nil {
+			cli.Log.Warnf("Failed to delete store after 516 error: %v", err)
+		}
 	case code == "401" && conflictType == "device_removed":
 		cli.expectDisconnect()
 		cli.Log.Infof("Got device removed stream error, sending LoggedOut event and deleting session")
@@ -182,6 +190,7 @@ func (cli *Client) handleConnectSuccess(ctx context.Context, node *waBinary.Node
 	// so do this unconditionally for a few months to ensure everyone gets the row.
 	cli.StoreLIDPNMapping(ctx, cli.Store.GetLID(), cli.Store.GetJID())
 	go func() {
+		cli.dispatchEvent(&events.Connected{})
 		if dbCount, err := cli.Store.PreKeys.UploadedPreKeyCount(ctx); err != nil {
 			cli.Log.Errorf("Failed to get number of prekeys in database: %v", err)
 		} else if serverCount, err := cli.getServerPreKeyCount(ctx); err != nil {
@@ -198,7 +207,6 @@ func (cli *Client) handleConnectSuccess(ctx context.Context, node *waBinary.Node
 		if err != nil {
 			cli.Log.Warnf("Failed to send post-connect passive IQ: %v", err)
 		}
-		cli.dispatchEvent(&events.Connected{})
 		cli.closeSocketWaitChan()
 	}()
 }

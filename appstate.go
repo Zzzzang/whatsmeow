@@ -1,4 +1,4 @@
-// Copyright (c) 2026 Tulir Asokan
+// Copyright (c) 2022 Tulir Asokan
 //
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -89,7 +89,7 @@ func (cli *Client) fetchAppState(ctx context.Context, name appstate.WAPatchName,
 	}
 	if fullSync {
 		cli.Log.Debugf("Full sync of app state %s completed. Current version: %d", name, state.Version)
-		eventsToDispatch = append(eventsToDispatch, &events.AppStateSyncComplete{Name: name, Version: state.Version})
+		eventsToDispatch = append(eventsToDispatch, &events.AppStateSyncComplete{Name: name})
 	} else {
 		cli.Log.Debugf("Synced app state %s from version %d to %d", name, version, state.Version)
 	}
