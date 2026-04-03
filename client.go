@@ -27,6 +27,7 @@ import (
 	"go.mau.fi/util/random"
 	"golang.org/x/net/proxy"
 
+	utls "github.com/bogdanfinn/utls"
 	"go.mau.fi/whatsmeow/appstate"
 	waBinary "go.mau.fi/whatsmeow/binary"
 	"go.mau.fi/whatsmeow/proto/waE2E"
@@ -369,7 +370,35 @@ func (cli *Client) SetSOCKSProxy(px proxy.Dialer, opts ...SetProxyOptions) {
 	}
 	transport := (http.DefaultTransport.(*http.Transport)).Clone()
 	pxc := px.(proxy.ContextDialer)
-	transport.DialContext = pxc.DialContext
+	//transport.DialContext = pxc.DialContext
+	transport.DialTLSContext = func(ctx context.Context, network, addr string) (net.Conn, error) {
+		// 提取主机名
+		host, _, err := net.SplitHostPort(addr)
+		if err != nil {
+			host = addr
+		}
+
+		var tcpConn net.Conn
+		// 检查是否有SOCKS代理
+		tcpConn, err = pxc.DialContext(ctx, network, addr)
+		if err != nil {
+			return nil, err
+		}
+
+		// 使用Chrome浏览器指纹（更稳定）
+		conn := utls.UClient(tcpConn, &utls.Config{
+			ServerName:         host,
+			InsecureSkipVerify: false,
+		}, utls.HelloChrome_Auto, true, true)
+
+		// 执行握手
+		err = conn.Handshake()
+		if err != nil {
+			tcpConn.Close()
+			return nil, err
+		}
+		return conn, nil
+	}
 	cli.setTransport(transport, opt)
 }
 
