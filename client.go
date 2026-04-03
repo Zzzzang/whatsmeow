@@ -474,7 +474,8 @@ func isRetryableConnectError(err error) bool {
 		}
 	}
 
-	return errors.Is(err, socket.ErrDialFailed)
+	// return errors.Is(err, socket.ErrDialFailed)
+	return false
 }
 
 func (cli *Client) ConnectContext(ctx context.Context) error {
