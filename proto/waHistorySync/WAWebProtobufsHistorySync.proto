@@ -53,6 +53,9 @@ message HistorySync {
 	optional string companionMetaNonce = 16;
 	optional bytes shareableChatIdentifierEncryptionKey = 17;
 	repeated Account accounts = 18;
+	optional bytes nctSalt = 19;
+	repeated InlineContact inlineContacts = 20;
+	optional bool inlineContactsProvided = 21;
 }
 
 message Conversation {
@@ -117,6 +120,9 @@ message Conversation {
 	optional WACommon.LimitSharing.Trigger limitSharingTrigger = 52;
 	optional bool limitSharingInitiatedByMe = 53;
 	optional bool maibaAiThreadEnabled = 54;
+	optional bool isMarketingMessageThread = 55;
+	optional bool isSenderNewAccount = 56;
+	optional uint32 afterReadDuration = 57;
 }
 
 message GroupParticipant {
@@ -147,6 +153,14 @@ message PhoneNumberToLIDMapping {
 	optional string lidJID = 2;
 }
 
+message InlineContact {
+	optional string pnJID = 1;
+	optional string lidJID = 2;
+	optional string fullName = 3;
+	optional string firstName = 4;
+	optional string username = 5;
+}
+
 message Account {
 	optional string lid = 1;
 	optional string username = 2;
@@ -167,6 +181,7 @@ message Pushname {
 message WallpaperSettings {
 	optional string filename = 1;
 	optional uint32 opacity = 2;
+	optional bool isGenAi = 3;
 }
 
 message GlobalSettings {
