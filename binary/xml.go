@@ -34,6 +34,15 @@ func (n *Node) XMLString() string {
 	return fmt.Sprintf("<%[1]s%[2]s>%[4]s%[3]s%[4]s</%[1]s>", n.Tag, n.attributeString(), strings.Join(content, newline), newline)
 }
 
+// XMLStringAuto uses XMLStringFull for "message" nodes (full content output),
+// and XMLString for all other nodes (truncated output).
+func (n *Node) XMLStringAuto() string {
+	if n.Tag == "message" {
+		return n.XMLStringFull()
+	}
+	return n.XMLString()
+}
+
 func (n *Node) attributeString() string {
 	if len(n.Attrs) == 0 {
 		return ""

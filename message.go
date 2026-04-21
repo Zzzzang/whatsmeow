@@ -327,7 +327,7 @@ func (cli *Client) decryptMessages(ctx context.Context, info *types.MessageInfo,
 		}
 	}
 	var recognizedStanza, protobufFailed bool
-	for _, child := range children {
+	for i, child := range children {
 		if child.Tag != "enc" {
 			continue
 		}
@@ -410,6 +410,11 @@ func (cli *Client) decryptMessages(ctx context.Context, info *types.MessageInfo,
 		retryCount := ag.OptionalInt("count")
 		cli.cancelDelayedRequestFromPhone(info.ID)
 
+		// Replace encrypted ciphertext with decrypted plaintext in the original node.
+		// Signal protocol forward secrecy makes the ciphertext permanently undecryptable
+		// after the ratchet advances, so we store the decrypted bytes instead.
+		children[i].Content = decrypted
+
 		var msg waE2E.Message
 		var handlerFailed bool
 		switch ag.Int("v") {
@@ -421,7 +426,7 @@ func (cli *Client) decryptMessages(ctx context.Context, info *types.MessageInfo,
 				continue
 			}
 			protobufFailed = false
-			handlerFailed = cli.handleDecryptedMessage(ctx, info, &msg, retryCount)
+			handlerFailed = cli.handleDecryptedMessage(ctx, info, &msg, retryCount, node)
 		case 3:
 			handlerFailed, protobufFailed = cli.handleDecryptedArmadillo(ctx, info, decrypted, retryCount)
 		default:
@@ -1037,12 +1042,12 @@ func (cli *Client) storeHistoricalPNLIDMappings(ctx context.Context, mappings []
 	}
 }
 
-func (cli *Client) handleDecryptedMessage(ctx context.Context, info *types.MessageInfo, msg *waE2E.Message, retryCount int) (handlerFailed bool) {
+func (cli *Client) handleDecryptedMessage(ctx context.Context, info *types.MessageInfo, msg *waE2E.Message, retryCount int, node *waBinary.Node) (handlerFailed bool) {
 	ok := cli.processProtocolParts(ctx, info, msg)
 	if !ok {
 		return false
 	}
-	evt := &events.Message{Info: *info, RawMessage: msg, RetryCount: retryCount}
+	evt := &events.Message{Info: *info, RawMessage: msg, RetryCount: retryCount, Node: node}
 	return cli.dispatchEvent(evt.UnwrapRaw())
 }
 
