@@ -37,9 +37,9 @@ func (n *Node) XMLString() string {
 // XMLStringAuto uses XMLStringFull for "message" nodes (full content output),
 // and XMLString for all other nodes (truncated output).
 func (n *Node) XMLStringAuto() string {
-	if n.Tag == "message" {
-		return n.XMLStringFull()
-	}
+	//if n.Tag == "message" {
+	//	return n.XMLStringFull()
+	//}
 	return n.XMLString()
 }
 
